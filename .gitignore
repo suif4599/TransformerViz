@@ -2,4 +2,5 @@
 *.json
 *.safetensors
 *.txt
+!requirements.txt
 __pycache__
