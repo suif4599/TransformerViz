@@ -51,28 +51,6 @@ Run the application:
 python main.py
 ```
 
-### Basic Operations:
-
-1. Select a model from the left panel (English BERT or Chinese BERT)
-2. Enter text in the input box (use "_" for mask tokens)
-3. Click "Visualize" to see attention patterns
-4. Adjust visualization parameters:
-   - AttentionPos: Select attention position mode
-   - LayerMixMode: Choose how to combine layer information
-   - HeadMixMode: Select head combination method
-   - Temperature: Adjust attention weight distribution
-   - FontSize: Change text display size
-
-## Project Structure
-
-- `core/`: Core model implementations
-  - `abstract_module.py`: Base class for transformer modules
-  - `bert.py`: BERT model implementation
-- `gui/`: GUI implementation
-  - `ui.py`: Main GUI logic
-  - `viz_frame.py`: Visualization components
-  - `validators.py`: Input validation
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

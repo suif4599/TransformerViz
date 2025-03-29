@@ -117,7 +117,6 @@ class BertModule(AbstractModule):
         inputs = self.tokenizer(sentence.replace("_", "[MASK]"), return_tensors="pt", padding=True, truncation=True, max_length=128)
         self.buffer = torch.zeros((12, 12, inputs["input_ids"].shape[1], inputs["input_ids"].shape[1]))
         self.input = self.tokenizer.convert_ids_to_tokens(inputs["input_ids"].squeeze(0))
-        # self.input_ind_map = {token: ind for ind, token in enumerate(self.input)}
         with torch.no_grad():
             outputs = self.model(**inputs)
         logits = outputs.logits
