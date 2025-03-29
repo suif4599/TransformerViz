@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>804</width>
-    <height>727</height>
+    <width>975</width>
+    <height>859</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -224,6 +224,44 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_5">
              <item>
+              <widget class="QLabel" name="label_8">
+               <property name="styleSheet">
+                <string notr="true">QLabel {
+    font-weight: bold;
+    font-size:14pt;
+    padding: 3px;
+	qproperty-alignment: AlignCenter;
+}
+</string>
+               </property>
+               <property name="text">
+                <string>Options</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="position_mode_frame">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QLabel" name="label_6">
+                  <property name="text">
+                   <string>AttentionPos: </string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="position_mode_option"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
               <widget class="QFrame" name="layer_mix_frame">
                <property name="frameShape">
                 <enum>QFrame::StyledPanel</enum>
@@ -263,6 +301,64 @@
                 </item>
                 <item>
                  <widget class="QComboBox" name="head_mix_option"/>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="temperature_frame">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <item>
+                 <widget class="QLabel" name="label_7">
+                  <property name="text">
+                   <string>Temperature:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="temperature_input"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="temperature_set_button">
+                  <property name="text">
+                   <string>Set</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QFrame" name="frame">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <item>
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Fontsize:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="fontsize_input"/>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="fontsize_set_button">
+                  <property name="text">
+                   <string>Set</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -333,7 +429,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>804</width>
+     <width>975</width>
      <height>20</height>
     </rect>
    </property>

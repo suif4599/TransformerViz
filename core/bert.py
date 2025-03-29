@@ -7,13 +7,12 @@ from typing import Optional, Tuple
 import math
 
 class BertModule(AbstractModule):
+    POSITION_MODE_LIST = ["encoder"]
     LAYER_MIX_MODE_LIST = ["first", "final", "average"]
-    HEAD_MIX_MODE_LIST = ["first", "average", "all"]
+    HEAD_MIX_MODE_LIST = ["all", "first", "average"]
 
     def __init__(self, language="english"):
         super().__init__()
-        # name = "english"
-        # name = "chinese"
         self.language = language.lower()
     
     @staticmethod
@@ -39,10 +38,10 @@ class BertModule(AbstractModule):
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         if attention_mask is not None:
             attention_scores = attention_scores + attention_mask
-
-        attention_probs = torch.nn.functional.softmax(attention_scores, dim=-1)
-        attention_probs = attention_probs.squeeze(0)
-        return attention_probs
+        return attention_scores.squeeze(0)
+        # attention_probs = torch.nn.functional.softmax(attention_scores, dim=-1)
+        # attention_probs = attention_probs.squeeze(0)
+        # return attention_probs.transpose(-1, -2)
 
     def load(self):
         path = os.path.dirname(os.path.abspath(__file__))
@@ -99,19 +98,25 @@ class BertModule(AbstractModule):
         except AttributeError:
             raise RuntimeError("Please run forward() first.")
     
-    def get_attention_weights(self, key: str, query: str, layer_mix_mode: str, head_mix_mode: str):
+    def get_attention_weights(self, 
+                              key: str, 
+                              position_mode: str, 
+                              layer_mix_mode: str, 
+                              head_mix_mode: str, 
+                              temperature: float):
         "k word need q word's attention"
+        # buffer = torch.nn.functional.softmax(self.buffer / temperature, dim=-1)
         key = self.input_ind_map[key]
-        query = self.input_ind_map[query]
         if head_mix_mode == "average":
             if layer_mix_mode == "first":
-                return self.buffer.mean(dim=1)[0, key, query]
+                res = self.buffer.mean(dim=1)[0, :, key]
             elif layer_mix_mode == "final":
-                return self.buffer.mean(dim=1)[-1, key, query]
+                res = self.buffer.mean(dim=1)[-1, :, key]
             elif layer_mix_mode == "average":
-                return self.buffer.mean(dim=1).mean(dim=0)[key, query]
+                res = self.buffer.mean(dim=1).mean(dim=0)[:, key]
             else:
                 raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
+            return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
         elif head_mix_mode == "first":
             head = 0
         elif head_mix_mode == "all":
@@ -119,18 +124,26 @@ class BertModule(AbstractModule):
         else:
             raise ValueError(f"Unsupported head mix mode: {head_mix_mode}")
         if layer_mix_mode == "first":
-            return self.buffer[0, head, key, query]
+            res = self.buffer[0, head, :, key]
         elif layer_mix_mode == "final":
-            return self.buffer[-1, head, key, query]
+            res = self.buffer[-1, head, :, key]
         elif layer_mix_mode == "average":
-            return self.buffer.mean(dim=0)[head, key, query]
+            res = self.buffer.mean(dim=0)[head, :, key]
         else:
             raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
-        
+        return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
+    
+    def get_position_mode_list(self):
+        return self.POSITION_MODE_LIST
     
     def get_layer_mix_mode_list(self):
         return self.LAYER_MIX_MODE_LIST
     
     def get_head_mix_mode_list(self):
         return self.HEAD_MIX_MODE_LIST
+
+    def get_n_head(self, position_mode: str, layer_mix_mode: str, head_mix_mode: str):
+        if head_mix_mode == "all":
+            return 12
+        return 1
 

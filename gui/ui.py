@@ -1,10 +1,12 @@
 from PyQt5.QtWidgets import QMainWindow, QApplication, QListView, QTextBrowser, \
     QComboBox, QLineEdit, QPushButton, QVBoxLayout
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont, QColor
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont, QColor, QValidator
 from PyQt5.QtCore import Qt
 from .Ui_root import Ui_MainWindow
 from core import AbstractModule
 from .viz_frame import VizFrameScroll
+from .validators import FloatValidator, PositiveIntValidator
+
 
 class _Root(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -15,22 +17,30 @@ class _Root(QMainWindow, Ui_MainWindow):
 
         self.module_list: QListView
         self.text_description: QTextBrowser
+        self.position_mode_option: QComboBox
         self.layer_mix_option: QComboBox
         self.head_mix_option: QComboBox
         self.text_input: QLineEdit
         self.confirm_button: QPushButton
         self.verticalLayout_6: QVBoxLayout
+        self.temperature_input: QLineEdit
+        self.temperature_set_button: QPushButton
+        self.fontsize_input: QLineEdit
+        self.fontsize_set_button: QPushButton
 
-        self.viz_scroll = VizFrameScroll(self.frame_attention, 12)
+        self.viz_scroll = VizFrameScroll(self.frame_attention, 1)
         self.verticalLayout_6.addWidget(self.viz_scroll)
         self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
 
+        self.temperature_input.setValidator(FloatValidator())
+        self.temperature_input.setPlaceholderText("1.0")
+
+        self.fontsize_input.setValidator(PositiveIntValidator())
     
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
         return super().keyPressEvent(event)
-
     
 
 class Root:
@@ -45,6 +55,9 @@ class Root:
         self.win.module_list.setModel(self.__item_model)
         self.win.module_list.selectionModel().currentChanged.connect(self.on_module_selected)
 
+        self.position_mode_option = None
+        self.win.position_mode_option.currentTextChanged.connect(self.on_position_mode_changed)
+
         self.layer_mix_option = None
         self.win.layer_mix_option.currentTextChanged.connect(self.on_layer_mix_option_changed)
 
@@ -52,6 +65,14 @@ class Root:
         self.win.head_mix_option.currentTextChanged.connect(self.on_head_mix_option_changed)
 
         self.win.confirm_button.clicked.connect(self.on_confirm_button_clicked)
+        
+        self.temperature = 1.0
+        self.win.temperature_set_button.clicked.connect(self.on_temperature_set_button_clicked)
+
+        self.fontsize = 20
+        self.win.fontsize_set_button.clicked.connect(self.on_fontsize_set_button_clicked)
+        self.win.fontsize_input.setPlaceholderText(f"{self.fontsize}pt")
+        self.win.viz_scroll.set_fontsize(self.fontsize)
     
     def mainloop(self):
         self.win.show()
@@ -68,7 +89,16 @@ class Root:
         
     def visualize(self):
         sentence = self.active_module.get_input()
+        self.win.viz_scroll.reset(
+            self.active_module.get_n_head(
+                self.position_mode_option,
+                self.layer_mix_option,
+                self.head_mix_option
+            ), 
+            self.key_changed
+        )
         self.win.viz_scroll.show_sentence(sentence)
+        self.win.viz_scroll.set_fontsize(self.fontsize)
 
     def on_module_selected(self, current, previous):
         # Handle the module selection change
@@ -83,6 +113,14 @@ class Root:
         self.win.text_description.clear()
         self.win.text_description.setHtml(self.active_module.get_description())
 
+        self.win.position_mode_option.blockSignals(True)
+        self.win.position_mode_option.clear()
+        for mode in self.active_module.get_position_mode_list():
+            self.win.position_mode_option.addItem(mode)
+        self.win.position_mode_option.setCurrentIndex(0)
+        self.on_position_mode_changed(self.win.position_mode_option.currentText())
+        self.win.position_mode_option.blockSignals(False)
+
         self.win.layer_mix_option.blockSignals(True)
         self.win.layer_mix_option.clear()
         for mode in self.active_module.get_layer_mix_mode_list():
@@ -96,17 +134,19 @@ class Root:
         for mode in self.active_module.get_head_mix_mode_list():
             self.win.head_mix_option.addItem(mode)
         self.win.head_mix_option.setCurrentIndex(0)
+        self.on_head_mix_option_changed(self.win.head_mix_option.currentText())
         self.win.head_mix_option.blockSignals(False)
 
         self.active_module.load()
     
+    def on_position_mode_changed(self, text):
+        self.position_mode_option = text
+
     def on_layer_mix_option_changed(self, text):
         self.layer_mix_option = text
-        print(f"Layer mix option changed to {text}")
 
     def on_head_mix_option_changed(self, text):
         self.head_mix_option = text
-        print(f"Head mix option changed to {text}")
 
     def on_confirm_button_clicked(self):
         if not self.active_module:
@@ -114,3 +154,37 @@ class Root:
         text = self.win.text_input.text()
         self.active_module.forward(text)
         self.visualize()
+    
+    def key_changed(self, key: str):
+        self.win.viz_scroll.show_color(
+            self.active_module.get_attention_weights(
+                key,
+                self.position_mode_option,
+                self.layer_mix_option,
+                self.head_mix_option,
+                self.temperature
+            )
+        )
+    
+    def on_temperature_set_button_clicked(self):
+        if not self.active_module:
+            return
+        text = self.win.temperature_input.text()
+        try:
+            self.temperature = float(text)
+        except ValueError:
+            pass
+        self.win.temperature_input.setPlaceholderText(str(self.temperature))
+        self.win.temperature_input.clear()
+    
+    def on_fontsize_set_button_clicked(self):
+        if not self.active_module:
+            return
+        text = self.win.fontsize_input.text()
+        try:
+            self.fontsize = int(text)
+        except ValueError:
+            pass
+        self.win.fontsize_input.setPlaceholderText(f"{self.fontsize}pt")
+        self.win.fontsize_input.clear()
+        self.win.viz_scroll.set_fontsize(self.fontsize)
