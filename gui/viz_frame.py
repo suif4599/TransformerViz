@@ -176,7 +176,6 @@ class VizFrameScroll(QWidget):
         self.add_frame("Key", callback)
         for i in range(1, n_head + 1):
             self.add_frame(f"Query_{i}")
-
     
     def show_color(self, color: list[float | list[float]]):
         if len(color) == 0:

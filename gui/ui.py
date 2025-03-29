@@ -141,12 +141,24 @@ class Root:
     
     def on_position_mode_changed(self, text):
         self.position_mode_option = text
+        try:
+            self.visualize()
+        except RuntimeError:
+            pass
 
     def on_layer_mix_option_changed(self, text):
         self.layer_mix_option = text
+        try:
+            self.visualize()
+        except RuntimeError:
+            pass
 
     def on_head_mix_option_changed(self, text):
         self.head_mix_option = text
+        try:
+            self.visualize()
+        except RuntimeError:
+            pass
 
     def on_confirm_button_clicked(self):
         if not self.active_module:
@@ -176,6 +188,7 @@ class Root:
             pass
         self.win.temperature_input.setPlaceholderText(str(self.temperature))
         self.win.temperature_input.clear()
+        self.visualize()
     
     def on_fontsize_set_button_clicked(self):
         if not self.active_module:
@@ -188,3 +201,4 @@ class Root:
         self.win.fontsize_input.setPlaceholderText(f"{self.fontsize}pt")
         self.win.fontsize_input.clear()
         self.win.viz_scroll.set_fontsize(self.fontsize)
+        self.visualize()
