@@ -1,18 +1,19 @@
 from PyQt5.QtWidgets import QMainWindow, QApplication, QListView, QTextBrowser, \
-    QComboBox, QLineEdit, QPushButton, QVBoxLayout
+    QComboBox, QLineEdit, QPushButton, QVBoxLayout, QAction, QStyle
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont, QColor, QValidator
 from PyQt5.QtCore import Qt
 from .Ui_root import Ui_MainWindow
 from core import AbstractModule
 from .viz_frame import VizFrameScroll
 from .validators import FloatValidator, PositiveIntValidator
-
+from .sub_window import HelpWindow, AboutWindow
 
 class _Root(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
-        self.showFullScreen()
+        self.showMaximized()
+        self.setWindowTitle("Attention Visualization")
         self.module_list.setSelectionMode(QListView.SingleSelection)
 
         self.module_list: QListView
@@ -27,6 +28,8 @@ class _Root(QMainWindow, Ui_MainWindow):
         self.temperature_set_button: QPushButton
         self.fontsize_input: QLineEdit
         self.fontsize_set_button: QPushButton
+        self.help_action: QAction
+        self.about_action: QAction
 
         self.viz_scroll = VizFrameScroll(self.frame_attention, 1)
         self.verticalLayout_6.addWidget(self.viz_scroll)
@@ -73,7 +76,11 @@ class Root:
         self.win.fontsize_set_button.clicked.connect(self.on_fontsize_set_button_clicked)
         self.win.fontsize_input.setPlaceholderText(f"{self.fontsize}pt")
         self.win.viz_scroll.set_fontsize(self.fontsize)
-    
+
+        self.win.help_action.triggered.connect(self.show_help)
+        self.win.about_action.triggered.connect(self.show_about)
+        self.win.setWindowIcon(self.app.style().standardIcon(QStyle.SP_FileIcon))
+
     def mainloop(self):
         self.win.show()
         self.app.exec_()
@@ -84,8 +91,9 @@ class Root:
         item.setEditable(False)
         item.setFont(QFont("Arial", 18))
         item.setTextAlignment(Qt.AlignCenter)
-        item.setBackground(QColor(188, 188, 188))
         self.__item_model.appendRow(item)
+        if len(self.modules) == 1:
+            self.win.module_list.setCurrentIndex(self.__item_model.index(0, 0))
         
     def visualize(self):
         sentence = self.active_module.get_input()
@@ -167,7 +175,7 @@ class Root:
         self.active_module.forward(text)
         self.visualize()
     
-    def key_changed(self, key: str):
+    def key_changed(self, key: int):
         self.win.viz_scroll.show_color(
             self.active_module.get_attention_weights(
                 key,
@@ -202,3 +210,15 @@ class Root:
         self.win.fontsize_input.clear()
         self.win.viz_scroll.set_fontsize(self.fontsize)
         self.visualize()
+    
+    def show_help(self):
+        help_window = HelpWindow(self.win)
+        help_window.show()
+        help_window.raise_()
+        help_window.activateWindow()
+
+    def show_about(self):
+        about_window = AboutWindow(self.win)
+        about_window.show()
+        about_window.raise_()
+        about_window.activateWindow()

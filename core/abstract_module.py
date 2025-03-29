@@ -24,7 +24,7 @@ class AbstractModule(ABC):
 
     @abstractmethod
     def get_attention_weights(self, 
-                              key: str, 
+                              key: int, 
                               position_mode: str, 
                               layer_mix_mode: str, 
                               head_mix_mode: str,

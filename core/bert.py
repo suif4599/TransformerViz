@@ -1,10 +1,62 @@
 import torch
 import os
 import gc
-from transformers import BertTokenizer, BertForMaskedLM
+from transformers import BertTokenizer, BertForMaskedLM, logging
 from .abstract_module import AbstractModule
 from typing import Optional, Tuple
 import math
+
+logging.set_verbosity_error()
+
+DOCX = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    .info-card {
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .comparison {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+    }
+</style>
+</head>
+<body>
+
+<div class="info-card">
+    <h2 style="color: #1976d2; margin-top: 0;">Bert %s</h2>
+    <p>BERT model is designed for <span style="color: #d32f2f;">cloze test</span> and provide a basic text understanding model.</p>
+</div>
+
+<div class="info-card">
+    <h3 style="color: #1976d2;">What It Understands</h3>
+    <table style="width: 100%%;">
+        <tr>
+            <td>✅</td>
+            <td>Daily conversations</td>
+            <td>"Where's the nearest coffee shop?"</td>
+        </tr>
+        <tr>
+            <td>✅</td>
+            <td>Simple questions</td>
+            <td>"What's the weather tomorrow?"</td>
+        </tr>
+        <tr>
+            <td>⚠️</td>
+            <td>Complex texts</td>
+            <td>Technical manuals, legal documents</td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>
+"""
 
 class BertModule(AbstractModule):
     POSITION_MODE_LIST = ["encoder"]
@@ -32,16 +84,12 @@ class BertModule(AbstractModule):
         query_layer = self.transpose_for_scores(mixed_query_layer)
 
         use_cache = past_key_value is not None
-        # Take the dot product between "query" and "key" to get the raw attention scores.
         attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
 
         attention_scores = attention_scores / math.sqrt(self.attention_head_size)
         if attention_mask is not None:
             attention_scores = attention_scores + attention_mask
         return attention_scores.squeeze(0)
-        # attention_probs = torch.nn.functional.softmax(attention_scores, dim=-1)
-        # attention_probs = attention_probs.squeeze(0)
-        # return attention_probs.transpose(-1, -2)
 
     def load(self):
         path = os.path.dirname(os.path.abspath(__file__))
@@ -63,14 +111,13 @@ class BertModule(AbstractModule):
         return f"BERT {self.language.capitalize()}"
     
     def get_description(self):
-        return f"<h1><a href=''>{self.get_name()}</a></h1>" \
-               f"<p>This is a pretrained module to do cloze test in {self.language.capitalize()}.</p>"
+        return DOCX % (self.language.capitalize(), )
     
     def forward(self, sentence):
         inputs = self.tokenizer(sentence.replace("_", "[MASK]"), return_tensors="pt", padding=True, truncation=True, max_length=128)
         self.buffer = torch.zeros((12, 12, inputs["input_ids"].shape[1], inputs["input_ids"].shape[1]))
         self.input = self.tokenizer.convert_ids_to_tokens(inputs["input_ids"].squeeze(0))
-        self.input_ind_map = {token: ind for ind, token in enumerate(self.input)}
+        # self.input_ind_map = {token: ind for ind, token in enumerate(self.input)}
         with torch.no_grad():
             outputs = self.model(**inputs)
         logits = outputs.logits
@@ -99,14 +146,12 @@ class BertModule(AbstractModule):
             raise RuntimeError("Please run forward() first.")
     
     def get_attention_weights(self, 
-                              key: str, 
+                              key: int, 
                               position_mode: str, 
                               layer_mix_mode: str, 
                               head_mix_mode: str, 
                               temperature: float):
         "k word need q word's attention"
-        # buffer = torch.nn.functional.softmax(self.buffer / temperature, dim=-1)
-        key = self.input_ind_map[key]
         if head_mix_mode == "average":
             if layer_mix_mode == "first":
                 res = self.buffer.mean(dim=1)[0, :, key]

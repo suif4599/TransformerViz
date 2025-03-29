@@ -26,7 +26,7 @@ class VizFrame(QFrame):
         self.name = f"VizFrame_{VizFrame.__NUM}"
         return self.name
 
-    def __init__(self, parent, title: str, callback: Callable[[str], None] = None):
+    def __init__(self, parent, title: str, callback: Callable[[int], None] = None):
         super().__init__(parent)
         self.setFrameShape(QFrame.StyledPanel)
         self.setFrameShadow(QFrame.Raised)
@@ -71,16 +71,16 @@ class VizFrame(QFrame):
         self.title_label.setObjectName(f"{self.name}_title_label")
         self.title_label.setStyleSheet("font-size: %dpt; font-weight: bold; color: yellow;" % self.fontsize)
         self.horizen_layout_outer.insertWidget(0, self.title_label, 1, Qt.AlignLeft)
-        for word in sentence:
+        for index, word in enumerate(sentence):
             label = ClickableLabel(word, self)
             label.setAlignment(Qt.AlignCenter)
             label.setStyleSheet("font-size: %dpt; font-weight: bold; color: black;" % self.fontsize)
             self.label_list.append(label)
             self.horizen_layout.addWidget(label)
             if self.callback:
-                def callback(*args, word=word):
-                    for label in self.label_list:
-                        if label.text() == word:
+                def callback(*args, index=index):
+                    for ind, label in enumerate(self.label_list):
+                        if ind == index:
                             label.setStyleSheet("font-size: %dpt; "
                                                 "font-weight: bold; "
                                                 "color: white; "
@@ -89,7 +89,7 @@ class VizFrame(QFrame):
                             label.setStyleSheet("font-size: %dpt; "
                                                 "font-weight: bold; "
                                                 "color: black;" % self.fontsize)
-                    self.callback(word)
+                    self.callback(index)
                 label.clicked.connect(callback)
     
     def set_color(self, color: list[float]):
@@ -150,7 +150,7 @@ class VizFrameScroll(QWidget):
         for frame in self.viz_frame_list:
             frame.clear()
     
-    def add_frame(self, name: str, callback: Callable[[str], None] = None) -> VizFrame:
+    def add_frame(self, name: str, callback: Callable[[int], None] = None) -> VizFrame:
         frame = VizFrame(self.parent(), name, callback)
         frame.setFixedHeight(self.frame_height)
         self.viz_frame_list.append(frame)
@@ -162,7 +162,7 @@ class VizFrameScroll(QWidget):
         for frame in self.viz_frame_list:
             frame.show_sencence(sentence)
     
-    def reset(self, n_head: int, callback: Callable[[str], None]):
+    def reset(self, n_head: int, callback: Callable[[int], None]):
         self.clear()
         if n_head < 1:
             raise ValueError("Number of heads must be greater than 0.")
