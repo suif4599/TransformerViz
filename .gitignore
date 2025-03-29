@@ -1,0 +1,5 @@
+*.bin
+*.json
+*.safetensors
+*.txt
+__pycache__
