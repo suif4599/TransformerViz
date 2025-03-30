@@ -182,7 +182,7 @@ class Root:
                 self.position_mode_option,
                 self.layer_mix_option,
                 self.head_mix_option,
-                self.temperature
+                self.temperature + 1e-6,
             )
         )
     
@@ -196,7 +196,10 @@ class Root:
             pass
         self.win.temperature_input.setPlaceholderText(str(self.temperature))
         self.win.temperature_input.clear()
-        self.visualize()
+        try:
+            self.visualize()
+        except RuntimeError:
+            pass
     
     def on_fontsize_set_button_clicked(self):
         if not self.active_module:
