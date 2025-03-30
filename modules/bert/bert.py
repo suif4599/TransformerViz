@@ -2,7 +2,7 @@ import torch
 import os
 import gc
 from transformers import BertTokenizer, BertForMaskedLM, logging
-from .abstract_module import AbstractModule
+from core.abstract_module import AbstractModule
 from typing import Optional, Tuple
 import math
 

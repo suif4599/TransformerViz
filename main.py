@@ -1,5 +1,5 @@
 from gui import Root
-from core import BertModule
+from modules import BertModule
 
 if __name__ == '__main__':
     win = Root()
