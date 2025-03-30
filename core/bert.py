@@ -132,17 +132,13 @@ class BertModule(AbstractModule):
         else:
             self.output = self.input
     
-    def get_input(self):
-        try:
-            return self.input
-        except AttributeError:
-            raise RuntimeError("Please run forward() first.")
-    
-    def get_output(self):
-        try:
-            return self.output
-        except AttributeError:
-            raise RuntimeError("Please run forward() first.")
+    def get_sentence(self, position_mode: str):
+        if position_mode == "encoder":
+            try:
+                return self.output, self.input
+            except AttributeError:
+                raise RuntimeError("Please run forward() before get_sentence()")
+        raise ValueError(f"Unsupported position mode: {position_mode}")
     
     def get_attention_weights(self, 
                               key: int, 

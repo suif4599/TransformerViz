@@ -157,10 +157,11 @@ class VizFrameScroll(QWidget):
         self.v_layout.addWidget(frame)
         return frame
     
-    def show_sentence(self, sentence: list[str]):
+    def show_sentence(self, target: list[str], source: list[str]):
         self.clear()
-        for frame in self.viz_frame_list:
-            frame.show_sencence(sentence)
+        self.viz_frame_list[0].show_sencence(target)
+        for frame in self.viz_frame_list[1:]:
+            frame.show_sencence(source)
     
     def reset(self, n_head: int, callback: Callable[[int], None]):
         self.clear()

@@ -16,7 +16,7 @@ TransformerViz is a PyQt5-based GUI application that allows users to visualize a
 - Adjustable temperature parameter for attention weight visualization
 - Real-time updates for attention pattern visualization
 - Multi-head attention visualization
-- High scalability: any model that implements the methods in `/code/abstract_module.py` can be added easy
+- High scalability: any model that implements the methods in `/core/abstract_module.py` can be added easy
 
 ## Installation
 
@@ -33,12 +33,12 @@ pip install -r requirements.txt
 
 3. Install Bert
 - Download bert model
-  - English model: Download the following files from [website](https://huggingface.co/google-bert/bert-base-uncased/tree/main) and create a folder `/code/english` to contain these files:
+  - English model: Download the following files from [website](https://huggingface.co/google-bert/bert-base-uncased/tree/main) and create a folder `/core/english` to contain these files:
     - config.json
     - model.safetensors
     - tokenizer_config.json
     - tokenizer.json
-  - Chinese model: Download the following files from [website](https://huggingface.co/google-bert/bert-base-chinese/tree/main) and create a folder `/code/chinese` to contain these files:
+  - Chinese model: Download the following files from [website](https://huggingface.co/google-bert/bert-base-chinese/tree/main) and create a folder `/core/chinese` to contain these files:
     - config.json
     - model.safetensors
     - tokenizer_config.json

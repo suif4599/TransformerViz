@@ -96,7 +96,7 @@ class Root:
             self.win.module_list.setCurrentIndex(self.__item_model.index(0, 0))
         
     def visualize(self):
-        sentence = self.active_module.get_input()
+        target, source = self.active_module.get_sentence(self.position_mode_option)
         self.win.viz_scroll.reset(
             self.active_module.get_n_head(
                 self.position_mode_option,
@@ -105,7 +105,7 @@ class Root:
             ), 
             self.key_changed
         )
-        self.win.viz_scroll.show_sentence(sentence)
+        self.win.viz_scroll.show_sentence(target, source)
         self.win.viz_scroll.set_fontsize(self.fontsize)
 
     def on_module_selected(self, current, previous):
