@@ -44,6 +44,9 @@ pip install -r requirements.txt
     - tokenizer_config.json
     - tokenizer.json
 
+    Install Llama2 
+    ...
+
 ## Usage
 
 Run the application:
