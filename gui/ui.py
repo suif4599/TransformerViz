@@ -7,6 +7,37 @@ from core import AbstractModule
 from .viz_frame import VizFrameScroll
 from .validators import FloatValidator, PositiveIntValidator
 from .sub_window import HelpWindow, AboutWindow
+from threading import Thread
+
+LOADING = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+}
+.loading-text {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 50px;
+  color: #666;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div>
+    <div class="loading-text">Loading Model...</div>
+  </div>
+</div>
+</body>
+</html>
+"""
 
 class _Root(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -68,13 +99,16 @@ class Root:
         self.win.head_mix_option.currentTextChanged.connect(self.on_head_mix_option_changed)
 
         self.win.confirm_button.clicked.connect(self.on_confirm_button_clicked)
+        self.win.text_input.returnPressed.connect(self.on_confirm_button_clicked)
         
         self.temperature = 1.0
         self.win.temperature_set_button.clicked.connect(self.on_temperature_set_button_clicked)
+        self.win.temperature_input.returnPressed.connect(self.on_temperature_set_button_clicked)
 
         self.fontsize = 20
         self.win.fontsize_set_button.clicked.connect(self.on_fontsize_set_button_clicked)
         self.win.fontsize_input.setPlaceholderText(f"{self.fontsize}pt")
+        self.win.fontsize_input.returnPressed.connect(self.on_fontsize_set_button_clicked)
         self.win.viz_scroll.set_fontsize(self.fontsize)
 
         self.win.help_action.triggered.connect(self.show_help)
@@ -84,6 +118,14 @@ class Root:
     def mainloop(self):
         self.win.show()
         self.app.exec_()
+    
+    def load_active(self):
+        loading_thread = Thread(target=self.active_module.load)
+        loading_thread.start()
+        self.win.setEnabled(False)
+        while loading_thread.is_alive():
+            QApplication.processEvents()
+        self.win.setEnabled(True)
     
     def add_module(self, module: AbstractModule):
         self.modules[name := module.get_name()] = module
@@ -109,18 +151,30 @@ class Root:
         self.win.viz_scroll.set_fontsize(self.fontsize)
 
     def on_module_selected(self, current, previous):
-        # Handle the module selection change
         if current.data() == self.selected_module_name:
             return
-        print(f"Selected module: {current.data()}")
-        if self.active_module:
-            self.active_module.unload()
-        self.selected_module_name = current.data()
-        self.active_module = self.modules[self.selected_module_name]
+        self.checkout_to(current)
 
+    def checkout_to(self, new):
+        # Handle the module selection change
+        def inner():
+            if self.active_module:
+                self.active_module.unload()
+            self.selected_module_name = new.data()
+            self.active_module = self.modules[self.selected_module_name]
+            self.active_module.load()
+        
+        self.win.text_description.clear()
+        self.win.text_description.setHtml(LOADING)
+        loading_thread = Thread(target=inner)
+        loading_thread.start()
+        self.win.setEnabled(False)
+        while loading_thread.is_alive():
+            QApplication.processEvents()
+        self.win.setEnabled(True)
+        
         self.win.text_description.clear()
         self.win.text_description.setHtml(self.active_module.get_description())
-
         self.win.position_mode_option.blockSignals(True)
         self.win.position_mode_option.clear()
         for mode in self.active_module.get_position_mode_list():
@@ -144,8 +198,6 @@ class Root:
         self.win.head_mix_option.setCurrentIndex(0)
         self.on_head_mix_option_changed(self.win.head_mix_option.currentText())
         self.win.head_mix_option.blockSignals(False)
-
-        self.active_module.load()
     
     def on_position_mode_changed(self, text):
         self.position_mode_option = text
