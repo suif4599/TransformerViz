@@ -93,14 +93,21 @@ class VizFrame(QFrame):
                 label.clicked.connect(callback)
     
     def set_color(self, color: list[float]):
-        if len(color) != len(self.label_list):
+        if len(color) > len(self.label_list):
             raise ValueError("Color list length does not match the number of labels.")
+        if len(color) < len(self.label_list):
+            color = list(color) + [None] * (len(self.label_list) - len(color))
         for label, color_label in zip(self.label_list, color):
-            q_color = (int(color_label * 255), int(color_label * 20), int(color_label * 20))
-            label.setStyleSheet("font-size: %dpt; "
+            if color_label is None:
+                label.setStyleSheet("font-size: %dpt; "
                                 "font-weight: bold; "
-                                "color: white; "
-                                "background-color: rgb(%d, %d, %d);" % (self.fontsize, *q_color))
+                                "color: black; " % self.fontsize)
+            else:
+                q_color = (int(color_label * 255), int(color_label * 20), int(color_label * 20))
+                label.setStyleSheet("font-size: %dpt; "
+                                    "font-weight: bold; "
+                                    "color: white; "
+                                    "background-color: rgb(%d, %d, %d);" % (self.fontsize, *q_color))
     
     def set_fontsize(self, fontsize: int):
         self.fontsize = fontsize
