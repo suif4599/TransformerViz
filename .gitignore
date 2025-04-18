@@ -1,6 +1,7 @@
 *.bin
 *.json
 *.safetensors
+*.spm
 *.txt
 !requirements.txt
 __pycache__

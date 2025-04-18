@@ -105,6 +105,12 @@ class BertModule(AbstractModule):
     def unload(self):
         del self.model
         del self.tokenizer
+        if hasattr(self, "buffer"):
+            del self.buffer
+        if hasattr(self, "input"):
+            del self.input
+        if hasattr(self, "output"):
+            del self.output
         gc.collect()
 
     def get_name(self):
