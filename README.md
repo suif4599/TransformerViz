@@ -44,8 +44,17 @@ pip install -r requirements.txt
     - tokenizer_config.json
     - tokenizer.json
 
-    Install Llama2 
-    ...
+4. Install Llama2 
+- Download llama2 model
+  - Llama2 chat model: Download the following files from [website](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/tree/main) and create a folder `/modules/llama/7b` to contain these files:
+    - config.json
+    - generation_config.json
+    - model-00001-of-00002.safetensors
+    - model-00002-of-00002.safetensors
+    - model.safetensors.index.json
+    - special_tokens_map.json
+    - tokenizer_config.json
+    - tokenizer.json
 
 ## Usage
 
