@@ -210,6 +210,7 @@ class LlamaModule(AbstractModule):
                 res = self.buffer.mean(dim=1).mean(dim=0)[:, key]
             else:
                 raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
+            res = res[:key]
             return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
         elif head_mix_mode == "first":
             head = 0
@@ -225,6 +226,10 @@ class LlamaModule(AbstractModule):
             res = self.buffer.mean(dim=0)[head, :, key]
         else:
             raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
+        if head_mix_mode == "first":
+            res = res[:key]
+        else:
+            res = res[:, :key]
         return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
     
     def get_position_mode_list(self):
