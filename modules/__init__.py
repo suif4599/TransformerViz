@@ -1,3 +1,3 @@
 from .bert import BertModule
 from .llama import LlamaModule
-from .opus import OpusModule
+from .t5 import T5Module

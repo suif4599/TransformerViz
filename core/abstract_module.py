@@ -66,3 +66,13 @@ class AbstractModule(ABC):
     def unload(self) -> None:
         "Unload the module and free up resources"
         pass
+
+    def get_other_info_list(self) -> dict[str, list[str]] | None:
+        """Return other information about the module,\n
+        such as `target language` for translation models\n"""
+        return None
+    
+    def set_other_info(self, info: dict[str, str]) -> None:
+        """Set other information about the module,\n
+        such as `target language` for translation models\n"""
+        pass

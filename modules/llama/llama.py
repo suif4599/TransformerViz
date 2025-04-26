@@ -166,6 +166,7 @@ class LlamaModule(AbstractModule):
         del self.model
         del self.tokenizer
         gc.collect()
+        torch.cuda.empty_cache()
 
     def get_name(self):
         return f"LLaMA-2-{self.model_size.upper()}"

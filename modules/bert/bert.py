@@ -108,6 +108,7 @@ class BertModule(AbstractModule):
         if hasattr(self, "output"):
             del self.output
         gc.collect()
+        torch.cuda.empty_cache()
 
     def get_name(self):
         return f"BERT {self.language.capitalize()}"
