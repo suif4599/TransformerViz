@@ -437,7 +437,8 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="help_action"/>
+    <addaction name="help_action_en"/>
+    <addaction name="help_action_zh"/>
     <addaction name="about_action"/>
    </widget>
    <addaction name="menuHelp"/>
@@ -447,14 +448,19 @@
     <string>city</string>
    </property>
   </action>
-  <action name="help_action">
+  <action name="help_action_en">
    <property name="text">
-    <string>TransformerViz Help</string>
+    <string>Help(EN)</string>
    </property>
   </action>
   <action name="about_action">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="help_action_zh">
+   <property name="text">
+    <string>Help(ZH)</string>
    </property>
   </action>
  </widget>

@@ -16,7 +16,7 @@ TransformerViz is a PyQt5-based GUI application that allows users to visualize a
 - Adjustable temperature parameter for attention weight visualization
 - Real-time updates for attention pattern visualization
 - Multi-head attention visualization
-- High scalability: any model that implements the methods in `/core/abstract_module.py` can be added easy
+- High scalability: any model that implements the methods in `/core/abstract_module.py` can be added easily
 
 ## Installation
 

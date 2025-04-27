@@ -60,7 +60,8 @@ class _Root(QMainWindow, Ui_MainWindow):
         self.temperature_set_button: QPushButton
         self.fontsize_input: QLineEdit
         self.fontsize_set_button: QPushButton
-        self.help_action: QAction
+        self.help_action_en: QAction
+        self.help_action_zh: QAction
         self.about_action: QAction
 
         self.viz_scroll = VizFrameScroll(self.frame_attention, 1)
@@ -169,7 +170,8 @@ class Root:
         self.win.fontsize_input.returnPressed.connect(self.on_fontsize_set_button_clicked)
         self.win.viz_scroll.set_fontsize(self.fontsize)
 
-        self.win.help_action.triggered.connect(self.show_help)
+        self.win.help_action_en.triggered.connect(lambda: self.show_help("en"))
+        self.win.help_action_zh.triggered.connect(lambda: self.show_help("zh"))
         self.win.about_action.triggered.connect(self.show_about)
         self.win.setWindowIcon(self.app.style().standardIcon(QStyle.SP_FileIcon))
 
@@ -335,8 +337,8 @@ class Root:
         except RuntimeError:
             pass
     
-    def show_help(self):
-        help_window = HelpWindow(self.win)
+    def show_help(self, language):
+        help_window = HelpWindow(language, self.win)
         help_window.show()
         help_window.raise_()
         help_window.activateWindow()

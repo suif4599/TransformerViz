@@ -12,7 +12,9 @@ ROOT_PATH = os.path.abspath(
 )
 
 class HelpWindow(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, language="en", parent=None):
+        if language not in ["en", "zh"]:
+            raise ValueError("Language must be either 'en' or 'zh'")
         super().__init__(parent)
         self.setWindowTitle("Help")
         self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
@@ -32,11 +34,11 @@ class HelpWindow(QDialog):
 
         self.text_browser = QTextBrowser(self)
         self.text_browser.setOpenExternalLinks(True)
-        with open(os.path.join(ROOT_PATH, "README.md"), "r", encoding="utf-8") as f:
+        with open(os.path.join(ROOT_PATH, f"help-{language}.md"), "r", encoding="utf-8") as f:
             help_text = f.read()
         self.text_browser.setMarkdown(help_text)
         self.text_browser.setAlignment(Qt.AlignTop)
-        self.text_browser.setStyleSheet("font-size: 12pt; font-weight: bold; color: black;")
+        self.text_browser.setStyleSheet("font-size: 16pt; font-weight: bold; color: black;")
 
         self.vertical_layout.addWidget(self.text_browser)
         
@@ -81,6 +83,7 @@ ABOUT = """
 <body>
     <h1>A Transformer Attention Visualization Tool</h1>
     <h2><a href="https://github.com/suif4599">@suif4599</a></h2>
+    <h2><a href="https://github.com/suif4599/TransformerViz">repo</a></h2>
 </body>
 </html>
 """
