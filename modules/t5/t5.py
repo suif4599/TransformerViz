@@ -6,15 +6,6 @@ import gc
 
 path = os.path.dirname(os.path.abspath(__file__))
 
-# prefix = 'translate to en: '
-# src_text = prefix + "Съешь ещё этих мягких французских булок."
-
-# input_ids = tokenizer(src_text, return_tensors="pt")
-
-# generated_tokens = model.generate(**input_ids.to(device))
-
-# result = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)
-# print(result)
 
 class T5Module(AbstractModule):
     POSITION_MODE_LIST = ["encoder", "decoder", "encoder-decoder"]
@@ -83,8 +74,8 @@ class T5Module(AbstractModule):
         if position_bias is None:
             key_length = key_states.shape[-2]
             # cache position is 0-indexed so we add 1 to get the real length of queries (aka with past)
-            # real_seq_length = query_length if query_length is not None else cache_position[-1] + 1
-            real_seq_length = key_length # it may be wrong
+            real_seq_length = query_length if query_length is not None else cache_position[-1] + 1
+            # real_seq_length = key_length # it may be wrong
             if not self.has_relative_attention_bias:
                 position_bias = torch.zeros(
                     (1, self.n_heads, seq_length, key_length), device=scores.device, dtype=scores.dtype
@@ -109,7 +100,7 @@ class T5Module(AbstractModule):
             position_bias_masked = position_bias
 
         scores += position_bias_masked
-        return scores.squeeze(0)
+        return scores.squeeze(0).transpose(-1, -2)
 
     def load(self):
         self.model = T5ForConditionalGeneration.from_pretrained(os.path.join(path, "large"))
@@ -118,28 +109,32 @@ class T5Module(AbstractModule):
         self.model.to("cuda" if torch.cuda.is_available() else "cpu")
         def gen_hook(position, index):
             if position == "encoder":
-                def hook(module, input, output):
+                def hook(module, args, kwargs, output):
                     if self.disable_hooks:
                         return
-                    self.encoder_buffer[index, :, :, :] = self.t5_attention_forward(module, *input)
+                    self.encoder_buffer[index, :, :, :] = self.t5_attention_forward(module, *args, **kwargs)
             elif position == "decoder":
-                def hook(module, input, output):
-                    if self.disable_hooks:
+                def hook(module, args, kwargs, output):
+                    if self.disable_hooks or args[0].shape[1] != self.out_len:
                         return
-                    self.decoder_buffer[index, :, :, :] = self.t5_attention_forward(module, *input)
+                    # if index == 0:
+                    #     print(index, args[0].shape, self.t5_attention_forward(module, *args, **kwargs).shape)
+                    self.decoder_buffer[index, :, :, :] = self.t5_attention_forward(module, *args, **kwargs)
             elif position == "encoder-decoder":
-                def hook(module, input, output):
-                    if self.disable_hooks:
+                def hook(module, args, kwargs, output):
+                    if self.disable_hooks or args[0].shape[1] != self.out_len:
                         return
-                    self.encoder_decoder_buffer[index, :, :, :] = self.t5_attention_forward(module, *input, key_value_states=self.encoder_outputs.last_hidden_state)
+                    # if index == 0:
+                    #     print(index, args[0].shape, self.t5_attention_forward(module, *args, **kwargs).shape)
+                    self.encoder_decoder_buffer[index, :, :, :] = self.t5_attention_forward(module, *args, **kwargs)
             else:
                 raise ValueError(f"Unsupported position: {position}")
             return hook
         for ind, layer in enumerate(self.model.encoder.block):
-            layer.layer[0].SelfAttention.register_forward_hook(gen_hook("encoder", ind))
+            layer.layer[0].SelfAttention.register_forward_hook(gen_hook("encoder", ind), with_kwargs=True)
         for ind, layer in enumerate(self.model.decoder.block):
-            layer.layer[0].SelfAttention.register_forward_hook(gen_hook("decoder", ind))
-            layer.layer[1].EncDecAttention.register_forward_hook(gen_hook("encoder-decoder", ind))
+            layer.layer[0].SelfAttention.register_forward_hook(gen_hook("decoder", ind), with_kwargs=True)
+            layer.layer[1].EncDecAttention.register_forward_hook(gen_hook("encoder-decoder", ind), with_kwargs=True)
 
     def unload(self):
         del self.model
@@ -155,7 +150,8 @@ class T5Module(AbstractModule):
         if hasattr(self, "output"):
             del self.output
         gc.collect()
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     
     def get_name(self):
         return "T5 Large"
@@ -172,16 +168,21 @@ class T5Module(AbstractModule):
         with torch.no_grad():
             self.disable_hooks = True
             outputs = self.model.generate(
-                **inputs.to("cuda" if torch.cuda.is_available() else "cpu"))
-            self.output = self.tokenizer.convert_ids_to_tokens(outputs[0])[1:] # <pad> is not the first token
-            out_len = len(self.output)
-            self.decoder_buffer = torch.zeros(24, 16, out_len, out_len)
-            self.encoder_decoder_buffer = torch.zeros(24, 16, out_len, in_len)
+                **inputs.to("cuda" if torch.cuda.is_available() else "cpu"),
+                num_beams=1,
+                do_sample=False
+            )
+            self.output = self.tokenizer.convert_ids_to_tokens(outputs[0])[:-1] # <pad> is not the first token
+            self.out_len = len(self.output)
+            self.decoder_buffer = torch.zeros(24, 16, self.out_len, self.out_len)
+            self.encoder_decoder_buffer = torch.zeros(24, 16, in_len, self.out_len)
             self.disable_hooks = False
-            self.encoder_outputs = self.model.encoder(input_ids=inputs["input_ids"])
-            self.model(input_ids=inputs["input_ids"],
-                       decoder_input_ids=outputs[:, 1:],
-                       use_cache=False)
+            self.model.generate(
+                **inputs.to("cuda" if torch.cuda.is_available() else "cpu"),
+                num_beams=1,
+                do_sample=False,
+                use_cache=False
+            )
 
     def get_sentence(self, position_mode: str):
         if position_mode == "encoder":
@@ -211,7 +212,9 @@ class T5Module(AbstractModule):
         return self.HEAD_MIX_MODE_LIST
     
     def get_n_head(self, position_mode, layer_mix_mode, head_mix_mode):
-        return 16
+        if head_mix_mode == "all":
+            return 16
+        return 1
     
     def get_attention_weights(self,
                               key: int,
@@ -219,4 +222,36 @@ class T5Module(AbstractModule):
                               layer_mix_mode: str,
                               head_mix_mode: str,
                               temperature: float):
-        return
+        if position_mode == "encoder":
+            buffer = self.encoder_buffer
+        elif position_mode == "decoder":
+            buffer = self.decoder_buffer
+        elif position_mode == "encoder-decoder":
+            buffer = self.encoder_decoder_buffer
+        else:
+            raise ValueError(f"Unsupported position mode: {position_mode}")
+        if head_mix_mode == "average":
+            if layer_mix_mode == "first":
+                res = buffer.mean(dim=1)[0, :, key]
+            elif layer_mix_mode == "final":
+                res = buffer.mean(dim=1)[-1, :, key]
+            elif layer_mix_mode == "average":
+                res = buffer.mean(dim=1).mean(dim=0)[:, key]
+            else:
+                raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
+            return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
+        elif head_mix_mode == "first":
+            head = 0
+        elif head_mix_mode == "all":
+            head = slice(None)
+        else:
+            raise ValueError(f"Unsupported head mix mode: {head_mix_mode}")
+        if layer_mix_mode == "first":
+            res = buffer[0, head, :, key]
+        elif layer_mix_mode == "final":
+            res = buffer[-1, head, :, key]
+        elif layer_mix_mode == "average":
+            res = buffer.mean(dim=0)[head, :, key]
+        else:
+            raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
+        return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()

@@ -264,7 +264,10 @@ class Root:
         self.win.fontsize_input.setPlaceholderText(f"{self.fontsize}pt")
         self.win.fontsize_input.clear()
         self.win.viz_scroll.set_fontsize(self.fontsize)
-        self.visualize()
+        try:
+            self.visualize()
+        except RuntimeError:
+            pass
     
     def show_help(self):
         help_window = HelpWindow(self.win)

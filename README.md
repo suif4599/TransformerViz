@@ -31,7 +31,7 @@ cd TransformerViz
 pip install -r requirements.txt
 ```
 
-3. Install Bert
+3. Install `Bert`
 - Download bert model
   - English model: Download the following files from [website](https://huggingface.co/google-bert/bert-base-uncased/tree/main) and create a folder `/modules/bert/english` to contain these files:
     - config.json
@@ -44,7 +44,7 @@ pip install -r requirements.txt
     - tokenizer_config.json
     - tokenizer.json
 
-4. Install Llama2 
+4. Install `Llama2` 
 - Download llama2 model
   - Llama2 chat model: Download the following files from [website](https://huggingface.co/meta-llama/Llama-2-7b-chat-hf/tree/main) and create a folder `/modules/llama/7b` to contain these files:
     - config.json
@@ -55,6 +55,17 @@ pip install -r requirements.txt
     - special_tokens_map.json
     - tokenizer_config.json
     - tokenizer.json
+
+5. Install `T5 translate`
+- Download T5 model
+  - T5 translate model:  Download the following files from [website](https://huggingface.co/utrobinmv/t5_translate_en_ru_zh_large_1024_v2/tree/main) and create a folder `/modules/t5/large` to contain these files:
+    - added_tokens.json
+    - config.json
+    - generation_config.json
+    - model.safetensors
+    - special_tokens_map.json
+    - spiece.model
+    - tokenizer_config.json
 
 ## Usage
 

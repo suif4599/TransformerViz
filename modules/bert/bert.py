@@ -8,54 +8,107 @@ import math
 
 logging.set_verbosity_error()
 
-DOCX = """
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-    .info-card {
-        border-radius: 12px;
-        padding: 20px;
-        margin: 15px 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .comparison {
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
-    }
-</style>
-</head>
-<body>
+DOCX_ZH = """
+<div style="font-family: 'Microsoft YaHei', Arial, sans-serif; max-width: 800px; margin: auto; color: #333;">
+    <h1 style="color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 8px;">BERT - 双向文本理解引擎</h1>
+    
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05)">
+        <h2 style="color: #3498DB; margin-top: 0;">核心功能</h2>
+        <p>BERT (Bidirectional Encoder Representations from Transformers) 能够：</p>
+        <ul style="list-style-type: '- '; padding-left: 25px;">
+            <li>理解词语的上下文关系</li>
+            <li>捕捉句子深层语义</li>
+            <li>识别文本中的隐含模式</li>
+        </ul>
+        <p>通过双向上下文分析，同时理解前后文本关联。</p>
+    </div>
 
-<div class="info-card">
-    <h2 style="color: #1976d2; margin-top: 0;">Bert %s</h2>
-    <p>BERT model is designed for <span style="color: #d32f2f;">cloze test</span> and provide a basic text understanding model.</p>
+    <div style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #E8F6FF; border-radius: 5px;">
+            <h3 style="color: #2980B9; margin-top: 0;">技术特点</h3>
+            <p>• 掩码语言建模<br>
+            • 双向上下文处理<br>
+            • 预训练+微调模式</p>
+        </div>
+
+        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #EAFAF1; border-radius: 5px;">
+            <h3 style="color: #27AE60; margin-top: 0;">主要优势</h3>
+            <p>• 上下文感知能力<br>
+            • 多任务适应性<br>
+            • 深度语义理解</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 25px; padding: 20px; border: 1px solid #FEF5E7; border-radius: 5px;">
+        <h2 style="color: #F39C12;">典型应用</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                <h4 style="margin: 5px 0;">语义搜索</h4>
+                <p>理解搜索意图</p>
+            </div>
+            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                <h4 style="margin: 5px 0;">文本分类</h4>
+                <p>文档类型识别</p>
+            </div>
+            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                <h4 style="margin: 5px 0;">问答系统</h4>
+                <p>上下文推理</p>
+            </div>
+        </div>
+    </div>
 </div>
+"""
 
-<div class="info-card">
-    <h3 style="color: #1976d2;">What It Understands</h3>
-    <table style="width: 100%%;">
-        <tr>
-            <td>✅</td>
-            <td>Daily conversations</td>
-            <td>"Where's the nearest coffee shop?"</td>
-        </tr>
-        <tr>
-            <td>✅</td>
-            <td>Simple questions</td>
-            <td>"What's the weather tomorrow?"</td>
-        </tr>
-        <tr>
-            <td>⚠️</td>
-            <td>Complex texts</td>
-            <td>Technical manuals, legal documents</td>
-        </tr>
-    </table>
+DOCX_EN = """
+<!-- English Version -->
+<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: auto; color: #333;">
+    <h1 style="color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 8px;">BERT - Bidirectional Text Understanding</h1>
+    
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05)">
+        <h2 style="color: #3498DB; margin-top: 0;">Core Capabilities</h2>
+        <p>BERT (Bidirectional Encoder Representations from Transformers) can:</p>
+        <ul style="list-style-type: '- '; padding-left: 25px;">
+            <li>Understand contextual relationships</li>
+            <li>Capture deep semantics</li>
+            <li>Recognize textual patterns</li>
+        </ul>
+        <p>Processes text bidirectionally for full context awareness.</p>
+    </div>
+
+    <div style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #E8F6FF; border-radius: 5px;">
+            <h3 style="color: #2980B9; margin-top: 0;">Technical Features</h3>
+            <p>• Masked language modeling<br>
+            • Bidirectional processing<br>
+            • Pretrain + fine-tune</p>
+        </div>
+
+        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #EAFAF1; border-radius: 5px;">
+            <h3 style="color: #27AE60; margin-top: 0;">Key Advantages</h3>
+            <p>• Context-aware embeddings<br>
+            • Multi-task adaptability<br>
+            • Deep semantic analysis</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 25px; padding: 20px; border: 1px solid #FEF5E7; border-radius: 5px;">
+        <h2 style="color: #F39C12;">Common Applications</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                <h4 style="margin: 5px 0;">Semantic Search</h4>
+                <p>Understanding search intent</p>
+            </div>
+            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                <h4 style="margin: 5px 0;">Text Classification</h4>
+                <p>Document categorization</p>
+            </div>
+            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
+                <h4 style="margin: 5px 0;">QA Systems</h4>
+                <p>Contextual reasoning</p>
+            </div>
+        </div>
+    </div>
 </div>
-
-</body>
-</html>
 """
 
 class BertModule(AbstractModule):
@@ -108,13 +161,15 @@ class BertModule(AbstractModule):
         if hasattr(self, "output"):
             del self.output
         gc.collect()
-        torch.cuda.empty_cache()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     def get_name(self):
         return f"BERT {self.language.capitalize()}"
     
     def get_description(self):
-        return DOCX % (self.language.capitalize(), )
+        # return DOCX % (self.language.capitalize(), )
+        return DOCX_ZH if self.language == "chinese" else DOCX_EN
     
     def forward(self, sentence):
         inputs = self.tokenizer(sentence.replace("_", "[MASK]"), return_tensors="pt", padding=True, truncation=True, max_length=128)
