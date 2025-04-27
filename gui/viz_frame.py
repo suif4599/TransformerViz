@@ -64,7 +64,7 @@ class VizFrame(QFrame):
             label.deleteLater()
         self.label_list.clear()
     
-    def show_sencence(self, sentence: list[str]):
+    def show_sencence(self, sentence: list[str], max_index: int = 0):
         self.clear()
         self.title_label = ClickableLabel(self.title, self)
         self.title_label.setAlignment(Qt.AlignCenter)
@@ -77,7 +77,7 @@ class VizFrame(QFrame):
             label.setStyleSheet("font-size: %dpt; font-weight: bold; color: black;" % self.fontsize)
             self.label_list.append(label)
             self.horizen_layout.addWidget(label)
-            if self.callback:
+            if self.callback and index < max_index:
                 def callback(*args, index=index):
                     for ind, label in enumerate(self.label_list):
                         if ind == index:
@@ -120,6 +120,19 @@ class VizFrame(QFrame):
                 re.sub(r"font-size: \d+pt", f"font-size: {fontsize}pt", label.getStyleSheet())
             )
         self.setFixedHeight(int(QFontMetrics(self.title_label.font()).height() * 1.8))
+    
+    def get_width(self, index: int) -> int:
+        if len(self.label_list) == 0:
+            return 0
+        label = self.label_list[index]
+        font_metrics = QFontMetrics(label.font())
+        text_width = font_metrics.boundingRect(label.text()).width()
+        return text_width + 10
+    
+    def set_width(self, index: int, width: int):
+        if len(self.label_list) == 0:
+            return
+        self.label_list[index].setFixedWidth(width)
 
 class VizFrameScroll(QWidget):
     __NUM = 0
@@ -166,9 +179,21 @@ class VizFrameScroll(QWidget):
     
     def show_sentence(self, target: list[str], source: list[str]):
         self.clear()
-        self.viz_frame_list[0].show_sencence(target)
+        target_length = len(target)
+        if len(target) < len(source):
+            target = target + [""] * (len(source) - len(target))
+        elif len(target) > len(source):
+            source = source + [""] * (len(target) - len(source))
+        if len(target) == 0 or len(source) == 0:
+            raise ValueError("Target or source sentence is empty.")
+        self.viz_frame_list[0].show_sencence(target, target_length)
         for frame in self.viz_frame_list[1:]:
             frame.show_sencence(source)
+        # align the width of all frames
+        for i in range(len(target)):
+            max_width = max(frame.get_width(i) for frame in self.viz_frame_list)
+            for frame in self.viz_frame_list:
+                frame.set_width(i, max_width)
     
     def reset(self, n_head: int, callback: Callable[[int], None]):
         self.clear()
