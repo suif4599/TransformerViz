@@ -280,8 +280,8 @@ class T5Module(AbstractModule):
             res = buffer.mean(dim=0)[head, :, key]
         else:
             raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
-        # if position_mode == "decoder":
-        #     res = res[:, 1:]
+        if position_mode == "decoder":
+            res = res[:, :key + 1]
         return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
     
     def get_other_info(self):
