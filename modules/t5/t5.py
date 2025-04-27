@@ -198,8 +198,8 @@ class T5Module(AbstractModule):
                 num_beams=1,
                 do_sample=False
             )
-            self.output = self.tokenizer.convert_ids_to_tokens(outputs[0])[:-1] # <pad> is not the first token
-            self.out_len = len(self.output)
+            self.output = self.tokenizer.convert_ids_to_tokens(outputs[0])
+            self.out_len = len(self.output) - 1
             self.decoder_buffer = torch.zeros(24, 16, self.out_len, self.out_len)
             self.encoder_decoder_buffer = torch.zeros(24, 16, in_len, self.out_len)
             self.disable_hooks = False
@@ -218,12 +218,12 @@ class T5Module(AbstractModule):
                 raise RuntimeError("Please run forward() before get_sentence()")
         elif position_mode == "decoder":
             try:
-                return self.output, self.output
+                return self.output[1:], self.output[:-1]
             except AttributeError:
                 raise RuntimeError("Please run forward() before get_sentence()")
         elif position_mode == "encoder-decoder":
             try:
-                return self.output, self.input
+                return self.output[:-1], self.input
             except AttributeError:
                 raise RuntimeError("Please run forward() before get_sentence()")
         raise ValueError(f"Unsupported position mode: {position_mode}")
@@ -280,6 +280,8 @@ class T5Module(AbstractModule):
             res = buffer.mean(dim=0)[head, :, key]
         else:
             raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
+        # if position_mode == "decoder":
+        #     res = res[:, 1:]
         return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
     
     def get_other_info(self):
