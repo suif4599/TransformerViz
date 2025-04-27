@@ -10,103 +10,69 @@ logging.set_verbosity_error()
 
 DOCX_ZH = """
 <div style="font-family: 'Microsoft YaHei', Arial, sans-serif; max-width: 800px; margin: auto; color: #333;">
-    <h1 style="color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 8px;">BERT - 双向文本理解引擎</h1>
+    <h1 style="color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 8px;">BERT - 上下文理解专家</h1>
     
-    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05)">
-        <h2 style="color: #3498DB; margin-top: 0;">核心功能</h2>
-        <p>BERT (Bidirectional Encoder Representations from Transformers) 能够：</p>
-        <ul style="list-style-type: '- '; padding-left: 25px;">
-            <li>理解词语的上下文关系</li>
-            <li>捕捉句子深层语义</li>
-            <li>识别文本中的隐含模式</li>
+    <div style="padding: 20px; margin: 15px 0; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #3498DB;">▍ 核心特性</h2>
+        <p>作为仅含编码器的模型：</p>
+        <ul style="padding-left: 25px;">
+            <li><strong>双向理解</strong>：同时分析前后文关系</li>
+            <li><strong>预训练任务</strong>：通过遮盖词语（MLM）和句子关系判断（NSP）学习语言规律</li>
+            <li><strong>通用性强</strong>：适用于问答/分类/搜索等多种任务</li>
         </ul>
-        <p>通过双向上下文分析，同时理解前后文本关联。</p>
     </div>
 
-    <div style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #E8F6FF; border-radius: 5px;">
-            <h3 style="color: #2980B9; margin-top: 0;">技术特点</h3>
-            <p>• 掩码语言建模<br>
-            • 双向上下文处理<br>
-            • 预训练+微调模式</p>
-        </div>
-
-        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #EAFAF1; border-radius: 5px;">
-            <h3 style="color: #27AE60; margin-top: 0;">主要优势</h3>
-            <p>• 上下文感知能力<br>
-            • 多任务适应性<br>
-            • 深度语义理解</p>
-        </div>
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin: 15px 0;">
+        <h2 style="color: #27AE60;">▍ 可视化重点</h2>
+        <ul style="columns: 2; padding-left: 20px;">
+            <li>各层注意力热力图</li>
+            <li>词语相似度矩阵</li>
+            <li>上下文关联强度</li>
+            <li>位置编码可视化</li>
+        </ul>
     </div>
 
-    <div style="margin-top: 25px; padding: 20px; border: 1px solid #FEF5E7; border-radius: 5px;">
-        <h2 style="color: #F39C12;">典型应用</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
-                <h4 style="margin: 5px 0;">语义搜索</h4>
-                <p>理解搜索意图</p>
-            </div>
-            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
-                <h4 style="margin: 5px 0;">文本分类</h4>
-                <p>文档类型识别</p>
-            </div>
-            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
-                <h4 style="margin: 5px 0;">问答系统</h4>
-                <p>上下文推理</p>
-            </div>
-        </div>
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #E74C3C;">▍ 技术细节</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px; border: 1px solid #eee;">模型类型</td><td style="padding: 8px; border: 1px solid #eee;">仅编码器</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">参数量</td><td style="padding: 8px; border: 1px solid #eee;">1.1亿 (Base)</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">训练数据</td><td style="padding: 8px; border: 1px solid #eee;">维基百科 + 图书语料</td></tr>
+        </table>
     </div>
 </div>
 """
 
 DOCX_EN = """
-<!-- English Version -->
 <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: auto; color: #333;">
-    <h1 style="color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 8px;">BERT - Bidirectional Text Understanding</h1>
+    <h1 style="color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 8px;">BERT - Context Understanding Expert</h1>
     
-    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05)">
-        <h2 style="color: #3498DB; margin-top: 0;">Core Capabilities</h2>
-        <p>BERT (Bidirectional Encoder Representations from Transformers) can:</p>
-        <ul style="list-style-type: '- '; padding-left: 25px;">
-            <li>Understand contextual relationships</li>
-            <li>Capture deep semantics</li>
-            <li>Recognize textual patterns</li>
+    <div style="padding: 20px; margin: 15px 0; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #3498DB;">▍ Key Features</h2>
+        <ul style="padding-left: 25px;">
+            <li><strong>Bidirectional</strong>: Context analysis in both directions</li>
+            <li><strong>Pre-training Tasks</strong>: Masked Language Modeling (MLM) & Next Sentence Prediction (NSP)</li>
+            <li><strong>Versatile</strong>: Adaptable to QA/classification/search tasks</li>
         </ul>
-        <p>Processes text bidirectionally for full context awareness.</p>
     </div>
 
-    <div style="margin-top: 25px; display: flex; gap: 15px; flex-wrap: wrap;">
-        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #E8F6FF; border-radius: 5px;">
-            <h3 style="color: #2980B9; margin-top: 0;">Technical Features</h3>
-            <p>• Masked language modeling<br>
-            • Bidirectional processing<br>
-            • Pretrain + fine-tune</p>
-        </div>
-
-        <div style="flex: 1; min-width: 250px; padding: 15px; border: 1px solid #EAFAF1; border-radius: 5px;">
-            <h3 style="color: #27AE60; margin-top: 0;">Key Advantages</h3>
-            <p>• Context-aware embeddings<br>
-            • Multi-task adaptability<br>
-            • Deep semantic analysis</p>
-        </div>
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin: 15px 0;">
+        <h2 style="color: #27AE60;">▍ Visualization Focus</h2>
+        <ul style="columns: 2; padding-left: 20px;">
+            <li>Layer-wise attention heatmaps</li>
+            <li>Word similarity matrices</li>
+            <li>Context association strength</li>
+            <li>Position encoding patterns</li>
+        </ul>
     </div>
 
-    <div style="margin-top: 25px; padding: 20px; border: 1px solid #FEF5E7; border-radius: 5px;">
-        <h2 style="color: #F39C12;">Common Applications</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
-                <h4 style="margin: 5px 0;">Semantic Search</h4>
-                <p>Understanding search intent</p>
-            </div>
-            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
-                <h4 style="margin: 5px 0;">Text Classification</h4>
-                <p>Document categorization</p>
-            </div>
-            <div style="padding: 10px; border: 1px solid #eee; border-radius: 4px;">
-                <h4 style="margin: 5px 0;">QA Systems</h4>
-                <p>Contextual reasoning</p>
-            </div>
-        </div>
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #E74C3C;">▍ Technical Specs</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Architecture</td><td style="padding: 8px; border: 1px solid #eee;">Encoder-only</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Parameters</td><td style="padding: 8px; border: 1px solid #eee;">110M (Base)</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Training Data</td><td style="padding: 8px; border: 1px solid #eee;">Wikipedia + BookCorpus</td></tr>
+        </table>
     </div>
 </div>
 """

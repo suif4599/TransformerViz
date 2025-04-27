@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QApplication, QListView, QTextBrowser, \
-    QComboBox, QLineEdit, QPushButton, QVBoxLayout, QAction, QStyle
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont, QColor, QValidator
+    QComboBox, QLineEdit, QPushButton, QVBoxLayout, QAction, QStyle, QFrame, \
+    QHBoxLayout, QLabel
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
 from PyQt5.QtCore import Qt
 from .Ui_root import Ui_MainWindow
 from core import AbstractModule
@@ -70,11 +71,68 @@ class _Root(QMainWindow, Ui_MainWindow):
         self.temperature_input.setPlaceholderText("1.0")
 
         self.fontsize_input.setValidator(PositiveIntValidator())
-    
+
+        self.more_option_frame = []
+        self.more_option_layout = []
+        self.more_option_label = []
+        self.more_option_combo = []
+        self.more_option_input = []
+        self.more_option_button = []
+
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
         return super().keyPressEvent(event)
+    
+    def add_control_option(self, name: str, option: list[str] | None, callback: callable):
+        self.more_option_frame.append(QFrame(self.frame_control))
+        self.more_option_frame[-1].setFrameShape(QFrame.StyledPanel)
+        self.more_option_frame[-1].setFrameShadow(QFrame.Raised)
+        self.verticalLayout_5.addWidget(self.more_option_frame[-1])
+        self.more_option_layout.append(QHBoxLayout(self.more_option_frame[-1]))
+        self.more_option_label.append(QLabel(self.more_option_frame[-1]))
+        self.more_option_label[-1].setText(name + ": ")
+        self.more_option_layout[-1].addWidget(self.more_option_label[-1])
+        if option is None:
+            self.more_option_input.append(QLineEdit(self.more_option_frame[-1]))
+            self.more_option_input[-1].setPlaceholderText(name)
+            self.more_option_layout[-1].addWidget(self.more_option_input[-1])
+            self.more_option_button.append(QPushButton(self.more_option_frame[-1]))
+            self.more_option_layout[-1].addWidget(self.more_option_button[-1])
+            self.more_option_button[-1].setText("Set")
+            self.more_option_combo.append(None)
+            def wrapper(input_widget=self.more_option_input[-1]):
+                text = input_widget.text()
+                if text:
+                    input_widget.setPlaceholderText(text)
+                    input_widget.clear()
+                callback(text)
+            self.more_option_button[-1].clicked.connect(wrapper)
+            self.more_option_input[-1].returnPressed.connect(wrapper)
+        else:
+            self.more_option_combo.append(QComboBox(self.more_option_frame[-1]))
+            for item in option:
+                self.more_option_combo[-1].addItem(item)
+            self.more_option_layout[-1].addWidget(self.more_option_combo[-1])
+            self.more_option_input.append(None)
+            self.more_option_button.append(None)
+            self.more_option_combo[-1].currentTextChanged.connect(callback)
+            self.more_option_combo[-1].setCurrentIndex(0)
+        self.more_option_frame[-1].setLayout(self.more_option_layout[-1])
+    
+    def clear_control_option(self):
+        for frame in self.more_option_frame:
+            self.verticalLayout_5.removeWidget(frame)
+            frame.setParent(None)
+            frame.deleteLater()
+        self.more_option_frame.clear()
+        self.more_option_layout.clear()
+        self.more_option_label.clear()
+        self.more_option_combo.clear()
+        self.more_option_input.clear()
+        self.more_option_button.clear()
+
     
 
 class Root:
@@ -118,14 +176,6 @@ class Root:
     def mainloop(self):
         self.win.show()
         self.app.exec_()
-    
-    def load_active(self):
-        loading_thread = Thread(target=self.active_module.load)
-        loading_thread.start()
-        self.win.setEnabled(False)
-        while loading_thread.is_alive():
-            QApplication.processEvents()
-        self.win.setEnabled(True)
     
     def add_module(self, module: AbstractModule):
         self.modules[name := module.get_name()] = module
@@ -198,6 +248,22 @@ class Root:
         self.win.head_mix_option.setCurrentIndex(0)
         self.on_head_mix_option_changed(self.win.head_mix_option.currentText())
         self.win.head_mix_option.blockSignals(False)
+
+        self.win.clear_control_option()
+        info = self.active_module.get_other_info()
+        if info is None:
+            return
+        for name, option in info.items():
+            def callback(text, name=name):
+                if text:
+                    self.active_module.set_other_info({name: text})
+                    try:
+                        self.on_confirm_button_clicked()
+                    except RuntimeError:
+                        pass
+            self.win.add_control_option(name, option, callback)
+
+
     
     def on_position_mode_changed(self, text):
         self.position_mode_option = text

@@ -6,11 +6,37 @@ import gc
 
 path = os.path.dirname(os.path.abspath(__file__))
 
+DOCX = """
+<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: auto; color: #333;">
+    <h1 style="color: #2C3E50; border-bottom: 2px solid #8E44AD; padding-bottom: 8px;">T5-translate-en-ru-zh - Translation Bridge</h1>
+    
+    <div style="padding: 20px; margin: 15px 0; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #8E44AD;">▍ Architecture Overview</h2>
+        <ul style="padding-left: 25px;">
+            <li><strong>Encoder-Decoder</strong>: Full transformer structure</li>
+            <li><strong>Special Token</strong>: Uses [translate] prompts</li>
+            <li><strong>Multilingual</strong>: Handles ZH/RU/EN translation</li>
+        </ul>
+    </div>
+
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin: 15px 0;">
+        <h2 style="color: #27AE60;">▍ Translation Process</h2>
+        <ol style="padding-left: 25px;">
+            <li>Input: "Hello world!"</li>
+            <li>Encoder analysis → Context understanding</li>
+            <li>Decoder generation → Output translation</li>
+        </ol>
+    </div>
+</div>
+"""
 
 class T5Module(AbstractModule):
     POSITION_MODE_LIST = ["encoder", "decoder", "encoder-decoder"]
     LAYER_MIX_MODE_LIST = ["first", "final", "average"]
     HEAD_MIX_MODE_LIST = ["all", "first", "average"]
+
+    def __init__(self):
+        self.target_language = "zh"
 
     @staticmethod
     def t5_attention_forward(
@@ -157,10 +183,10 @@ class T5Module(AbstractModule):
         return "T5 Large"
     
     def get_description(self):
-        return "T5 Large model for text generation."
+        return DOCX
     
     def forward(self, sentence):
-        header = "translate to zh: "
+        header = f"translate to {self.target_language}: "
         inputs = self.tokenizer(header + sentence, return_tensors="pt", padding=True, truncation=True, max_length=128)
         self.input = self.tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
         in_len = inputs["input_ids"].shape[1]
@@ -255,3 +281,11 @@ class T5Module(AbstractModule):
         else:
             raise ValueError(f"Unsupported layer mix mode: {layer_mix_mode}")
         return torch.nn.functional.softmax(res / temperature, dim=-1).tolist()
+    
+    def get_other_info(self):
+        return {
+            "Target Language": ["zh", "ru", "en"]
+        }
+
+    def set_other_info(self, info):
+        self.target_language = info["Target Language"]

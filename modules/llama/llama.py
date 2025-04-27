@@ -9,53 +9,37 @@ import math
 logging.set_verbosity_error()
 
 DOCX = """
-<!DOCTYPE html>
-<html>
-<head>
-<style>
-    .info-card {
-        border-radius: 12px;
-        padding: 20px;
-        margin: 15px 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .comparison {
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
-    }
-</style>
-</head>
-<body>
+<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: auto; color: #333;">
+    <h1 style="color: #2C3E50; border-bottom: 2px solid #E67E22; padding-bottom: 8px;">Llama2-7b - Autoregressive Generative Model</h1>
+    
+    <div style="padding: 20px; margin: 15px 0; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #E67E22;">▍ Core Architecture</h2>
+        <ul style="padding-left: 25px;">
+            <li><strong>Decoder-only Architecture</strong>: 32-layer Transformer decoder stack</li>
+            <li><strong>Causal Attention Mask</strong>: Prevents information leakage by restricting attention to preceding tokens</li>
+            <li><strong>Pre-training Objective</strong>: Next-token prediction (autoregressive generation)</li>
+        </ul>
+    </div>
 
-<div class="info-card">
-    <h2 style="color: #1976d2; margin-top: 0;">Llama %s</h2>
-    <p>Llama model is designed for <span style="color: #d32f2f;">cloze test</span> and provide a basic text understanding model.</p>
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px; margin: 15px 0;">
+        <h2 style="color: #27AE60;">▍ Technical Specifications</h2>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Parameters</td><td style="padding: 8px; border: 1px solid #eee;">7 Billion</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Context Window</td><td style="padding: 8px; border: 1px solid #eee;">4,096 Tokens</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Training Data</td><td style="padding: 8px; border: 1px solid #eee;">2 Trillion Tokens (mixed corpus)</td></tr>
+            <tr><td style="padding: 8px; border: 1px solid #eee;">Decoding Method</td><td style="padding: 8px; border: 1px solid #eee;">Top-p Sampling (nucleus sampling)</td></tr>
+        </table>
+    </div>
+
+    <div style="padding: 20px; border: 1px solid #eee; border-radius: 5px;">
+        <h2 style="color: #E74C3C;">▍ Attention Mechanisms</h2>
+        <ul style="columns: 2; padding-left: 20px;">
+            <li>Layer-wise triangular masking</li>
+            <li>Long-range dependency tracking</li>
+            <li>Positional bias patterns</li>
+        </ul>
+    </div>
 </div>
-
-<div class="info-card">
-    <h3 style="color: #1976d2;">What It Understands</h3>
-    <table style="width: 100%%;">
-        <tr>
-            <td>✅</td>
-            <td>Daily conversations</td>
-            <td>"Where's the nearest coffee shop?"</td>
-        </tr>
-        <tr>
-            <td>✅</td>
-            <td>Simple questions</td>
-            <td>"What's the weather tomorrow?"</td>
-        </tr>
-        <tr>
-            <td>⚠️</td>
-            <td>Complex texts</td>
-            <td>Technical manuals, legal documents</td>
-        </tr>
-    </table>
-</div>
-
-</body>
-</html>
 """
     
 
@@ -173,7 +157,7 @@ class LlamaModule(AbstractModule):
         return f"LLaMA-2-{self.model_size.upper()}"
     
     def get_description(self):
-        return DOCX % (self.model_size.capitalize(), )
+        return DOCX
     
     def forward(self, sentence):
         self.tokenizer.pad_token = self.tokenizer.eos_token
