@@ -2,6 +2,9 @@ from PyQt5.QtWidgets import QDialog, QStyle, QVBoxLayout, QTextBrowser, QSizePol
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QScreen
 from PyQt5.QtWidgets import QApplication
+from types import TracebackType
+from html import escape
+import traceback
 import os
 
 ROOT_PATH = os.path.abspath(
@@ -113,4 +116,84 @@ class AboutWindow(QDialog):
             int(screen_size.width() * 0.3), 
             int(screen_size.height() * 0.2)
         )
+
+class ExceptionWindow(QDialog):
+    def __init__(self, parent, exc_type: type, exc_value: object, tb: TracebackType):
+        super().__init__(parent)
+
+        exc_type_str = escape(f"{exc_type.__module__}.{exc_type.__name__}")
+        exc_value_str = escape(str(exc_value)) if exc_value else ""
+        tb_lines_raw = traceback.format_tb(tb)
+        tb_lines = []
+        for line in tb_lines_raw:
+            tb_lines.extend(line.splitlines())
+        formatted_tb = "".join([f"<p>{escape(line)}</p>" for line in tb_lines])
+        message = f"""
+        <div style="
+            font-family: 'Courier New', monospace;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
+            color: #333;
+        ">
+            <div style="
+                color: #c7254e;
+                padding: 10px;
+                border-radius: 3px;
+                margin-bottom: 10px;
+                font-weight: bold;
+            ">
+                {exc_type_str}
+            </div>
+
+            <div style="
+                margin-bottom: 15px;
+                padding: 10px;
+                border-left: 4px solid #3498db;
+            ">
+                <span style="color: #2c3e50;">Message: </span>
+                <span style="color: blue;">{exc_value_str}</span>
+            </div>
+
+            <div style="
+                color: black;
+                padding: 8px;
+                border-radius: 3px;
+                margin-bottom: 10px;
+            ">
+                Stack Trace:
+            </div>
+
+            <div style="
+                padding: 10px;
+                border-radius: 3px;
+                line-height: 1.6;
+                white-space: pre-wrap;
+            ">
+                {formatted_tb}
+            </div>
+        </div>
+        """
         
+        self.setWindowTitle(f"{exc_type.__module__}.{exc_type.__name__}")
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        
+        self.text_browser = QTextBrowser(self)
+        self.text_browser.setOpenExternalLinks(True)
+        self.text_browser.setAlignment(Qt.AlignTop)
+        self.text_browser.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.text_browser.setHtml(message)
+        
+        layout.addWidget(self.text_browser)
+        self.setLayout(layout)
+        
+        screen_size = QScreen.availableGeometry(QApplication.primaryScreen()).size()
+        self.resize(
+            int(screen_size.width() * 0.8), 
+            int(screen_size.height() * 0.8)
+        )

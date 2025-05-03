@@ -48,9 +48,9 @@ class LlamaModule(AbstractModule):
     LAYER_MIX_MODE_LIST = ["first", "final", "average"]
     HEAD_MIX_MODE_LIST = ["all", "first", "average"]
 
-    def __init__(self, model_size="7b"):
+    def __init__(self):
         super().__init__()
-        self.model_size = model_size
+        self.model_size = "7b"
         self.num_layers = 32  # LLaMA-7B的层数
         self.num_heads = 32    # 注意力头数量
     

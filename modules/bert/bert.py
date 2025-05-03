@@ -84,6 +84,8 @@ class BertModule(AbstractModule):
 
     def __init__(self, language="english"):
         super().__init__()
+        if language.lower() not in ["english", "chinese"]:
+            raise ValueError(f"Unsupported language: {language}")
         self.language = language.lower()
     
     @staticmethod

@@ -2,12 +2,12 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QListView, QTextBrowser, 
     QComboBox, QLineEdit, QPushButton, QVBoxLayout, QAction, QStyle, QFrame, \
     QHBoxLayout, QLabel
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QFont
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QItemSelectionModel
 from .Ui_root import Ui_MainWindow
 from core import AbstractModule
 from .viz_frame import VizFrameScroll
 from .validators import FloatValidator, PositiveIntValidator
-from .sub_window import HelpWindow, AboutWindow
+from .sub_window import HelpWindow, AboutWindow, ExceptionWindow
 from threading import Thread
 
 LOADING = """
@@ -146,6 +146,7 @@ class Root:
         self.active_module: AbstractModule | None = None
         self.__item_model = QStandardItemModel()
         self.win.module_list.setModel(self.__item_model)
+        self.win.module_list.setFocusPolicy(Qt.StrongFocus)
         self.win.module_list.selectionModel().currentChanged.connect(self.on_module_selected)
 
         self.position_mode_option = None
@@ -209,12 +210,21 @@ class Root:
 
     def checkout_to(self, new):
         # Handle the module selection change
+        exception = None
+        raw_module = self.active_module if hasattr(self, "active_module") else None
+        if raw_module:
+            raw_row = self.__item_model.findItems(raw_module.get_name())[0].row()
+            raw_index = self.__item_model.index(raw_row, 0)
         def inner():
-            if self.active_module:
-                self.active_module.unload()
-            self.selected_module_name = new.data()
-            self.active_module = self.modules[self.selected_module_name]
-            self.active_module.load()
+            nonlocal exception
+            try:
+                if self.active_module:
+                    self.active_module.unload()
+                self.selected_module_name = new.data()
+                self.active_module = self.modules[self.selected_module_name]
+                self.active_module.load()
+            except Exception as e:
+                exception = e
         
         self.win.text_description.clear()
         self.win.text_description.setHtml(LOADING)
@@ -223,6 +233,29 @@ class Root:
         self.win.setEnabled(False)
         while loading_thread.is_alive():
             QApplication.processEvents()
+        
+        if exception and raw_module:
+            # rollback
+            raw_module.load()
+            self.active_module = raw_module
+            self.selected_module_name = raw_module.get_name()
+            raw_index = self.__item_model.index(raw_row, 0)
+            selection_model = self.win.module_list.selectionModel()
+            selection_model.setCurrentIndex(
+                raw_index, 
+                QItemSelectionModel.ClearAndSelect | QItemSelectionModel.Current
+            )
+            exception_window = ExceptionWindow(
+                self.win,
+                type(exception),
+                exception,
+                exception.__traceback__
+            )
+            exception_window.show()
+            exception_window.raise_()
+            exception_window.activateWindow()
+        elif exception:
+            raise exception
         self.win.setEnabled(True)
         
         self.win.text_description.clear()
