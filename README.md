@@ -4,7 +4,7 @@ A visualization tool for exploring attention mechanisms in transformer models.
 
 ## Overview
 
-TransformerViz is a PyQt5-based GUI application that allows users to visualize and analyze attention patterns in transformer models. Currently supports BERT models for both English and Chinese languages.
+TransformerViz is a PyQt6-based GUI application that allows users to visualize and analyze attention patterns in transformer models. Currently supports BERT models for both English and Chinese languages.
 
 ## Features
 

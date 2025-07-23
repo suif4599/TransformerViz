@@ -1,14 +1,16 @@
-from PyQt5.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, \
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, \
     QScrollArea, QWidget, QSizePolicy
-from PyQt5.QtGui import QFontMetrics
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFontMetrics
+from PyQt6.QtCore import Qt, pyqtSignal
 from collections.abc import Callable
+from typing import Optional
 import re
 
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, ev):
+        event = ev
         self.clicked.emit()
         super().mousePressEvent(event)
     
@@ -26,10 +28,10 @@ class VizFrame(QFrame):
         self.name = f"VizFrame_{VizFrame.__NUM}"
         return self.name
 
-    def __init__(self, parent, title: str, callback: Callable[[int], None] = None):
+    def __init__(self, parent, title: str, callback: Optional[Callable[[int], None]] = None):
         super().__init__(parent)
-        self.setFrameShape(QFrame.StyledPanel)
-        self.setFrameShadow(QFrame.Raised)
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setFrameShadow(QFrame.Shadow.Raised)
         self.setObjectName(self.get_name())
         self.setStyleSheet("border: 0px;")
         self.horizen_layout_outer = QHBoxLayout(self)
@@ -38,9 +40,9 @@ class VizFrame(QFrame):
         self.horizen_layout_outer.setContentsMargins(0, 0, 0, 0)
         self.frame_inner = QFrame(self)
         self.frame_inner.setObjectName(f"{self.name}_frame_inner")
-        self.frame_inner.setFrameShape(QFrame.StyledPanel)
-        self.frame_inner.setFrameShadow(QFrame.Raised)
-        self.frame_inner.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.frame_inner.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frame_inner.setFrameShadow(QFrame.Shadow.Raised)
+        self.frame_inner.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.horizen_layout_outer.addWidget(self.frame_inner, 10)
         self.horizen_layout = QHBoxLayout(self.frame_inner)
         self.horizen_layout.setObjectName(f"{self.name}_horizen_layout")
@@ -51,6 +53,15 @@ class VizFrame(QFrame):
         self.title_label: ClickableLabel | None = None
         self.callback = callback
         self.fontsize = 20
+        self._current_colors: list[float] = []  # Store current color values for theme updates
+        
+        # Theme colors will be set by set_theme_colors method
+        self.theme_colors = {
+            'text_primary': '#212121',
+            'text_normal': '#212121',
+            'border': '#E0E0E0',
+            'background': '#FFFFFF'
+        }
     
     def clear(self):
         if self.title_label:
@@ -67,59 +78,191 @@ class VizFrame(QFrame):
     def show_sencence(self, sentence: list[str], max_index: int = 0):
         self.clear()
         self.title_label = ClickableLabel(self.title, self)
-        self.title_label.setAlignment(Qt.AlignCenter)
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.title_label.setObjectName(f"{self.name}_title_label")
-        self.title_label.setStyleSheet("font-size: %dpt; font-weight: bold; color: yellow;" % self.fontsize)
-        self.horizen_layout_outer.insertWidget(0, self.title_label, 1, Qt.AlignLeft)
+        # Initial styling will be updated by set_theme_colors
+        self.title_label.setStyleSheet(f"""
+            font-size: {self.fontsize}pt; 
+            font-weight: bold; 
+            color: #FFFFFF;
+            background-color: #2196F3;
+            border-radius: 3px;
+            padding: 1px;
+            margin: 1px;
+        """)
+        # 设置title label的最小高度
+        font_metrics = QFontMetrics(self.title_label.font())
+        min_height = int(font_metrics.height() * 1.3)
+        self.title_label.setMinimumHeight(min_height)
+        self.horizen_layout_outer.insertWidget(0, self.title_label, 1, Qt.AlignmentFlag.AlignLeft)
         for index, word in enumerate(sentence):
             label = ClickableLabel(word, self)
-            label.setAlignment(Qt.AlignCenter)
-            label.setStyleSheet("font-size: %dpt; font-weight: bold; color: black;" % self.fontsize)
+            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            label.setStyleSheet(f"""
+                font-size: {self.fontsize}pt; 
+                font-weight: bold; 
+                color: {self.theme_colors.get('text_normal', '#212121')};
+                background-color: {self.theme_colors.get('background', '#FFFFFF')};
+                border-radius: 3px;
+                padding: 1px;
+                margin: 1px;
+            """)
+            # 设置label的最小高度以确保文字有足够空间显示
+            font_metrics = QFontMetrics(label.font())
+            min_height = int(font_metrics.height() * 1.3)
             self.label_list.append(label)
             self.horizen_layout.addWidget(label)
             if self.callback and index < max_index:
                 def callback(*args, index=index):
                     for ind, label in enumerate(self.label_list):
                         if ind == index:
-                            label.setStyleSheet("font-size: %dpt; "
-                                                "font-weight: bold; "
-                                                "color: white; "
-                                                "background-color: rgb(200, 20, 20);" % self.fontsize)
+                            label.setStyleSheet(f"""
+                                font-size: {self.fontsize}pt;
+                                font-weight: bold;
+                                color: {self.theme_colors.get('text_highlighted', '#FFFFFF')};
+                                background-color: {self.theme_colors.get('max_attention', '#FF5722')};
+                                border-radius: 3px;
+                                padding: 1px;
+                                margin: 1px;
+                            """)
                         else:
-                            label.setStyleSheet("font-size: %dpt; "
-                                                "font-weight: bold; "
-                                                "color: black;" % self.fontsize)
-                    self.callback(index)
+                            label.setStyleSheet(f"""
+                                font-size: {self.fontsize}pt;
+                                font-weight: bold;
+                                color: {self.theme_colors.get('text_normal', '#212121')};
+                                background-color: {self.theme_colors.get('background', '#FFFFFF')};
+                                border-radius: 3px;
+                                padding: 1px;
+                                margin: 1px;
+                            """)
+                    if self.callback:
+                        self.callback(index)
                 label.clicked.connect(callback)
     
+    def set_theme_colors(self, theme_colors: dict):
+        """Set theme colors and apply to frame styles"""
+        old_theme_colors = self.theme_colors
+        self.theme_colors = theme_colors
+        
+        frame_bg = theme_colors.get('background', '#F5F5F5')
+        border_color = theme_colors.get('border', '#E0E0E0')
+        
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {frame_bg};
+                border: 0px solid {border_color};
+            }}
+        """)
+        
+        self.frame_inner.setStyleSheet(f"""
+            QFrame {{
+                background-color: {frame_bg};
+                border: 0px solid {border_color};
+                border-radius: 3px;
+            }}
+        """)
+        
+        # Update title label colors if it exists
+        if self.title_label:
+            # Determine if this is Key/Query frame and calculate appropriate title colors
+            is_key_query_frame = self.title and ('Key' in self.title or 'Query' in self.title)
+            text_primary = theme_colors.get('text_primary', '#212121')
+            is_dark_mode = text_primary.lower() in ['#ffffff', '#fff', 'white'] or text_primary.startswith('#f') or text_primary.startswith('#e')
+            
+            if is_key_query_frame:
+                # Blue title for Key/Query frames
+                title_bg = '#2196F3' if not is_dark_mode else '#1976D2'
+            else:
+                # Red title for regular frames
+                title_bg = '#F44336' if not is_dark_mode else '#D32F2F'
+            
+            title_text = '#FFFFFF'  # Always white text on colored backgrounds
+            
+            self.title_label.setStyleSheet(f"""
+                font-size: {self.fontsize}pt; 
+                font-weight: bold; 
+                color: {title_text};
+                background-color: {title_bg};
+                padding: 1px;
+                margin: 1px;
+            """)
+        
+        # Force re-render all labels if they exist and theme actually changed
+        if old_theme_colors != theme_colors and hasattr(self, '_current_colors') and self._current_colors:
+            self.set_color(self._current_colors)
+    
+    def _get_attention_color(self, attention_value: float) -> tuple[str, str]:
+        """Get background and text color based on attention value using smooth gradient"""
+        attention_value = max(0.0, min(1.0, attention_value))
+        text_primary = self.theme_colors.get('text_primary', '#212121')
+        is_dark_mode = text_primary.lower() in ['#ffffff', '#fff', 'white'] or text_primary.startswith('#f') or text_primary.startswith('#e')
+        if is_dark_mode:
+            red_component = int(255 * attention_value)
+            background_color = f"#{red_component:02x}0000"
+            text_color = "#FFFFFF"
+        else:
+            green_blue_component = int(255 * (1 - attention_value))
+            background_color = f"#ff{green_blue_component:02x}{green_blue_component:02x}"
+            text_color = "#000000"
+            
+        return background_color, text_color
+    
     def set_color(self, color: list[float]):
+        self._current_colors = color.copy() if color else []
+        
         if len(color) > len(self.label_list):
             raise ValueError("Color list length does not match the number of labels.")
+        extended_color: list[float | None] = list(color)
         if len(color) < len(self.label_list):
-            color = list(color) + [None] * (len(self.label_list) - len(color))
-        for label, color_label in zip(self.label_list, color):
+            extended_color = extended_color + [None] * (len(self.label_list) - len(color))
+        for label, color_label in zip(self.label_list, extended_color):
             if color_label is None:
-                label.setStyleSheet("font-size: %dpt; "
-                                "font-weight: bold; "
-                                "color: black; " % self.fontsize)
+                text_color = self.theme_colors.get('text_normal', self.theme_colors.get('text_primary', '#212121'))
+                label.setStyleSheet(f"""
+                    font-size: {self.fontsize}pt;
+                    font-weight: bold;
+                    color: {text_color};
+                    background-color: {self.theme_colors['background']};
+                    padding: 1px;
+                    margin: 1px;
+                """)
             else:
-                q_color = (int(color_label * 255), int(color_label * 20), int(color_label * 20))
-                label.setStyleSheet("font-size: %dpt; "
-                                    "font-weight: bold; "
-                                    "color: white; "
-                                    "background-color: rgb(%d, %d, %d);" % (self.fontsize, *q_color))
+                bg_color, text_color = self._get_attention_color(color_label)
+                label.setStyleSheet(f"""
+                    font-size: {self.fontsize}pt;
+                    font-weight: bold;
+                    color: {text_color};
+                    background-color: {bg_color};
+                    padding: 1px;
+                    margin: 1px;
+                """)
+            font_metrics = QFontMetrics(label.font())
+            min_height = int(font_metrics.height() * 1.3)
+            label.setMinimumHeight(min_height)
     
     def set_fontsize(self, fontsize: int):
         self.fontsize = fontsize
         if self.title_label:
+            current_style = self.title_label.styleSheet() or ""
             self.title_label.setStyleSheet(
-                re.sub(r"font-size: \d+pt", f"font-size: {fontsize}pt", self.title_label.getStyleSheet())
+                re.sub(r"font-size: \d+pt", f"font-size: {fontsize}pt", current_style)
             )
+            # 更新title label的最小高度
+            font_metrics = QFontMetrics(self.title_label.font())
+            min_height = int(font_metrics.height() * 1.3)
+            self.title_label.setMinimumHeight(min_height)
         for label in self.label_list:
+            current_style = label.styleSheet() or ""
             label.setStyleSheet(
-                re.sub(r"font-size: \d+pt", f"font-size: {fontsize}pt", label.getStyleSheet())
+                re.sub(r"font-size: \d+pt", f"font-size: {fontsize}pt", current_style)
             )
-        self.setFixedHeight(int(QFontMetrics(self.title_label.font()).height() * 1.8))
+            font_metrics = QFontMetrics(label.font())
+            min_height = int(font_metrics.height() * 1.3)
+            label.setMinimumHeight(min_height)
+        if self.title_label:
+            font = self.title_label.font()
+            if font:
+                self.setFixedHeight(int(QFontMetrics(font).height() * 2.0))
     
     def get_width(self, index: int) -> int:
         if len(self.label_list) == 0:
@@ -127,7 +270,7 @@ class VizFrame(QFrame):
         label = self.label_list[index]
         font_metrics = QFontMetrics(label.font())
         text_width = font_metrics.boundingRect(label.text()).width()
-        return text_width + 10
+        return int(text_width * 1.2 + 10)
     
     def set_width(self, index: int, width: int):
         if len(self.label_list) == 0:
@@ -144,8 +287,10 @@ class VizFrameScroll(QWidget):
     def __init__(self, parent, n_head: int, frame_height: int = 160):
         self.frame_height = frame_height
         super().__init__(parent)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setObjectName(self.get_name())
+        self.current_theme_colors = None
+        self.key_query_colors = None
         self.outer_layout = QVBoxLayout(self)
         self.outer_layout.setObjectName(f"{self.name}_outer_layout")
         self.outer_layout.setSpacing(0)
@@ -156,8 +301,7 @@ class VizFrameScroll(QWidget):
         self.scroll_area.setWidgetResizable(True)
         self.container = QWidget(self.scroll_area)
         self.container.setObjectName(f"{self.name}_container")
-        self.container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.container.setStyleSheet("background-color: rgb(188, 188, 188);")
+        self.container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.scroll_area.setWidget(self.container)
         self.v_layout = QVBoxLayout(self.container)
         self.v_layout.setObjectName(f"{self.name}_v_layout")
@@ -170,9 +314,18 @@ class VizFrameScroll(QWidget):
         for frame in self.viz_frame_list:
             frame.clear()
     
-    def add_frame(self, name: str, callback: Callable[[int], None] = None) -> VizFrame:
+    def add_frame(self, name: str, callback: Optional[Callable[[int], None]] = None) -> VizFrame:
         frame = VizFrame(self.parent(), name, callback)
         frame.setFixedHeight(self.frame_height)
+        if self.current_theme_colors:
+            if name and ('Key' in name or 'Query' in name):
+                if hasattr(self, 'key_query_colors') and self.key_query_colors:
+                    frame.set_theme_colors(self.key_query_colors)
+                else:
+                    frame.set_theme_colors(self.current_theme_colors)
+            else:
+                frame.set_theme_colors(self.current_theme_colors)
+        
         self.viz_frame_list.append(frame)
         self.v_layout.addWidget(frame)
         return frame
@@ -218,13 +371,45 @@ class VizFrameScroll(QWidget):
             if len(color) != len(self.viz_frame_list) - 1:
                 raise ValueError("Color list length does not match the number of frames.")
             for color_each, frame in zip(color, self.viz_frame_list[1:]):
-                frame.set_color(color_each)
+                if isinstance(color_each, list):
+                    frame.set_color(color_each)
         else:
             if len(self.viz_frame_list) - 1 != 1:
                 raise ValueError("Color list length does not match the number of frames.")
-            self.viz_frame_list[1].set_color(color)
+            # color is list[float] in this case
+            self.viz_frame_list[1].set_color(color)  # type: ignore
     
     def set_fontsize(self, fontsize: int):
         for frame in self.viz_frame_list:
             frame.set_fontsize(fontsize)
+    
+    def set_theme_colors(self, attention_colors: dict, key_query_colors: dict | None = None):
+        """Apply theme colors to scroll container and all frames"""
+        old_attention_colors = getattr(self, 'current_theme_colors', None)
+        old_key_query_colors = getattr(self, 'key_query_colors', None)
+        
+        self.current_theme_colors = attention_colors
+        self.key_query_colors = key_query_colors
+        
+        container_bg = attention_colors.get('background', '#F5F5F5')
+        self.container.setStyleSheet(f"background-color: {container_bg};")
+        
+        for frame in self.viz_frame_list:
+            frame_title = getattr(frame, 'title', 'Unknown')
+            # Check if this frame is for Key or Query
+            if frame.title and ('Key' in frame.title or 'Query' in frame.title):
+                # Use blue colors for Key and Query frames
+                if key_query_colors:
+                    frame.set_theme_colors(key_query_colors)
+                else:
+                    frame.set_theme_colors(attention_colors)
+            else:
+                # Use default red colors for other frames
+                frame.set_theme_colors(attention_colors)
+        
+        # Force refresh all frames if theme actually changed
+        if (old_attention_colors != attention_colors or old_key_query_colors != key_query_colors):
+            for frame in self.viz_frame_list:
+                if hasattr(frame, '_current_colors') and frame._current_colors:
+                    frame.set_color(frame._current_colors)
         

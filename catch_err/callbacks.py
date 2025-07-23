@@ -1,3 +1,8 @@
+def terminal_show_error(exc_type, exc_value, tb):
+    print(f"Error: {exc_type.__name__}: {exc_value}")
+    print("".join(traceback.format_exception(exc_type, exc_value, tb)))
+    print("\nTkinter is not available.")
+
 try:
     from tkinter import Tk, Button, Toplevel, Frame, TclError
     from tkinter.scrolledtext import ScrolledText
@@ -81,7 +86,5 @@ try:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to copy to clipboard: {e}", parent=window)
 except ImportError:
-    def tkinter_show_error(exc_type, exc_value, tb):
-        print(f"Error: {exc_type.__name__}: {exc_value}")
-        print("".join(traceback.format_exception(exc_type, exc_value, tb)))
-        print("\nTkinter is not available.")
+    tkinter_show_error = terminal_show_error
+    print("Tkinter is not available. Using terminal error display.")
